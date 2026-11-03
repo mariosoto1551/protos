@@ -1,0 +1,853 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Parqueo Inteligente UPB · Simulacion en Tiempo Real</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg: #0f172a;
+    --bg-2: #1e293b;
+    --bg-3: #334155;
+    --text: #e2e8f0;
+    --text-dim: #94a3b8;
+    --verde: #10b981;
+    --verde-dark: #059669;
+    --rojo: #ef4444;
+    --rojo-dark: #dc2626;
+    --azul: #3b82f6;
+    --azul-dark: #2563eb;
+    --amarillo: #f59e0b;
+    --naranja: #f97316;
+    --borde: #475569;
+  }
+  body {
+    font-family: 'Segoe UI', Tahoma, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    padding: 20px;
+    background-image:
+      radial-gradient(circle at 20% 10%, rgba(59,130,246,0.08), transparent 40%),
+      radial-gradient(circle at 80% 90%, rgba(16,185,129,0.08), transparent 40%);
+  }
+
+  /* ====== HEADER ====== */
+  header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+    gap: 16px;
+  }
+  .titulo {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+  .titulo .logo {
+    width: 52px; height: 52px;
+    background: linear-gradient(135deg, var(--azul), var(--verde));
+    border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 28px;
+    box-shadow: 0 8px 24px rgba(59,130,246,0.3);
+  }
+  .titulo h1 { font-size: 22px; font-weight: 700; }
+  .titulo p { color: var(--text-dim); font-size: 13px; margin-top: 2px; }
+  .estado-sistema {
+    display: flex; align-items: center; gap: 10px;
+    background: var(--bg-2); padding: 10px 16px;
+    border-radius: 10px; border: 1px solid var(--borde);
+    font-size: 13px;
+  }
+  .dot {
+    width: 10px; height: 10px; border-radius: 50%;
+    background: var(--rojo); box-shadow: 0 0 10px var(--rojo);
+  }
+  .dot.activo { background: var(--verde); box-shadow: 0 0 10px var(--verde); animation: pulse 1.5s infinite; }
+  @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.4; } }
+
+  /* ====== CONTADORES ====== */
+  .contadores {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 14px;
+    margin-bottom: 20px;
+  }
+  .card-contador {
+    background: var(--bg-2); border: 1px solid var(--borde);
+    border-radius: 14px; padding: 18px;
+    display: flex; align-items: center; gap: 14px;
+    transition: transform 0.2s;
+  }
+  .card-contador:hover { transform: translateY(-2px); }
+  .card-contador .icono {
+    width: 48px; height: 48px; border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 24px;
+  }
+  .card-contador.disponible .icono { background: rgba(16,185,129,0.15); color: var(--verde); }
+  .card-contador.ocupado .icono { background: rgba(239,68,68,0.15); color: var(--rojo); }
+  .card-contador.total .icono { background: rgba(59,130,246,0.15); color: var(--azul); }
+  .card-contador .info h3 {
+    font-size: 12px; color: var(--text-dim); font-weight: 500;
+    text-transform: uppercase; letter-spacing: 0.5px;
+  }
+  .card-contador .info .numero { font-size: 30px; font-weight: 700; margin-top: 2px; }
+  .card-contador.disponible .numero { color: var(--verde); }
+  .card-contador.ocupado .numero { color: var(--rojo); }
+  .card-contador.total .numero { color: var(--azul); }
+
+  /* ====== BOTON SIMULACION GRANDE ====== */
+  .control-simulacion {
+    background: var(--bg-2);
+    border: 1px solid var(--borde);
+    border-radius: 14px;
+    padding: 16px 20px;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+  .control-simulacion .info-sim {
+    display: flex; align-items: center; gap: 12px;
+  }
+  .control-simulacion .info-sim .icono-sim {
+    width: 44px; height: 44px; border-radius: 10px;
+    background: var(--bg-3);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 22px;
+  }
+  .control-simulacion .info-sim .texto h3 { font-size: 15px; font-weight: 600; }
+  .control-simulacion .info-sim .texto p { font-size: 12px; color: var(--text-dim); margin-top: 2px; }
+  .control-simulacion .botones-sim { display: flex; gap: 10px; flex-wrap: wrap; }
+
+  .btn-sim {
+    padding: 14px 28px;
+    border: none;
+    border-radius: 10px;
+    font-size: 15px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex; align-items: center; gap: 8px;
+    letter-spacing: 0.3px;
+  }
+  .btn-sim:hover { transform: translateY(-2px); }
+  .btn-sim:active { transform: translateY(0); }
+  .btn-sim.iniciar {
+    background: linear-gradient(135deg, var(--verde), var(--verde-dark));
+    color: #fff;
+    box-shadow: 0 6px 20px rgba(16,185,129,0.4);
+  }
+  .btn-sim.detener {
+    background: linear-gradient(135deg, var(--rojo), var(--rojo-dark));
+    color: #fff;
+    box-shadow: 0 6px 20px rgba(239,68,68,0.4);
+  }
+  .btn-sim.reset {
+    background: var(--bg-3);
+    color: var(--text);
+    border: 1px solid var(--borde);
+  }
+  .btn-sim.reset:hover { background: #475569; }
+  .btn-sim:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+
+  /* ====== LAYOUT PRINCIPAL ====== */
+  .main-grid {
+    display: grid;
+    grid-template-columns: 1fr 340px;
+    gap: 16px;
+  }
+  @media (max-width: 1100px) {
+    .main-grid { grid-template-columns: 1fr; }
+  }
+
+  /* ====== MAPA PARQUEO ====== */
+  .mapa-parqueo {
+    background: var(--bg-2);
+    border: 1px solid var(--borde);
+    border-radius: 14px;
+    padding: 18px;
+  }
+  .mapa-header {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-bottom: 16px; padding-bottom: 12px;
+    border-bottom: 1px solid var(--borde);
+    flex-wrap: wrap; gap: 8px;
+  }
+  .mapa-header h2 { font-size: 15px; font-weight: 600; }
+  .leyenda { display: flex; gap: 12px; font-size: 12px; color: var(--text-dim); }
+  .leyenda span { display: flex; align-items: center; gap: 5px; }
+  .leyenda .box { width: 12px; height: 12px; border-radius: 3px; }
+  .leyenda .libre { background: var(--verde); }
+  .leyenda .ocupado { background: var(--rojo); }
+  .leyenda .nuevo { background: var(--amarillo); }
+
+  /* Parqueo con pasillo */
+  .parqueo-container {
+    display: grid;
+    grid-template-columns: 1fr 60px;
+    gap: 12px;
+  }
+  .zonas-parqueo { display: flex; flex-direction: column; gap: 8px; }
+  .zona {
+    background: var(--bg);
+    border: 1px solid var(--borde);
+    border-radius: 10px;
+    padding: 8px;
+  }
+  .zona-header {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-bottom: 6px; padding: 0 4px;
+  }
+  .zona-header .nombre {
+    font-size: 11px; font-weight: 700; color: var(--amarillo);
+    letter-spacing: 1px;
+  }
+  .zona-header .contador-zona { font-size: 10px; color: var(--text-dim); }
+  .espacios { display: grid; grid-template-columns: repeat(8, 1fr); gap: 5px; }
+  .espacio {
+    aspect-ratio: 1 / 1.1;
+    background: var(--verde);
+    border-radius: 5px;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    font-size: 10px; font-weight: 600; color: #064e3b;
+    cursor: pointer; transition: all 0.25s;
+    border: 2px solid transparent;
+    overflow: hidden;
+  }
+  .espacio:hover { transform: scale(1.08); box-shadow: 0 4px 12px rgba(0,0,0,0.4); }
+  .espacio.ocupado { background: var(--rojo); color: #fff; }
+  .espacio.ocupado .auto-icon { font-size: 16px; }
+  .espacio .id-espacio { font-size: 9px; font-weight: 700; }
+  .espacio.highlight {
+    border-color: var(--amarillo);
+    box-shadow: 0 0 16px var(--amarillo);
+    animation: blink 1s 3;
+  }
+  @keyframes blink { 0%,100% { box-shadow: 0 0 16px var(--amarillo); } 50% { box-shadow: 0 0 4px var(--amarillo); } }
+
+  /* Pasillo */
+  .pasillo {
+    background: linear-gradient(180deg, #1f2937, #111827);
+    border-radius: 10px; border: 2px dashed var(--borde);
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: space-between;
+    padding: 10px 6px; position: relative;
+  }
+  .pasillo::before {
+    content: ''; position: absolute; left: 50%; top: 20%; bottom: 20%; width: 2px;
+    background: repeating-linear-gradient(to bottom, var(--amarillo) 0, var(--amarillo) 8px, transparent 8px, transparent 16px);
+    transform: translateX(-50%);
+  }
+  .pasillo .etiqueta-av {
+    writing-mode: vertical-rl; transform: rotate(180deg);
+    font-size: 9px; color: var(--text-dim); letter-spacing: 1px; font-weight: 600; text-align: center;
+  }
+  .pasillo .acceso {
+    background: var(--bg-3); padding: 6px 4px; border-radius: 5px;
+    font-size: 9px; font-weight: 700; text-align: center; width: 100%; z-index: 1;
+  }
+  .pasillo .acceso.entrada { background: var(--verde-dark); color: #fff; }
+  .pasillo .acceso.salida { background: var(--rojo-dark); color: #fff; }
+
+  /* ====== PANEL LATERAL ====== */
+  .panel-lateral { display: flex; flex-direction: column; gap: 14px; }
+  .panel-card {
+    background: var(--bg-2); border: 1px solid var(--borde);
+    border-radius: 14px; padding: 14px;
+  }
+  .panel-card h3 {
+    font-size: 12px; color: var(--text-dim);
+    margin-bottom: 10px; text-transform: uppercase; letter-spacing: 0.5px;
+    display: flex; align-items: center; gap: 6px;
+  }
+
+  /* ====== CAMARA LPR ====== */
+  .camara-lpr {
+    background: #000;
+    border-radius: 10px;
+    overflow: hidden;
+    position: relative;
+    border: 2px solid var(--borde);
+    min-height: 180px;
+  }
+  .camara-lpr .camara-bg {
+    width: 100%; height: 180px;
+    background:
+      linear-gradient(180deg, rgba(0,0,0,0.3) 0%, rgba(0,0,0,0.7) 100%),
+      repeating-linear-gradient(0deg, rgba(255,255,255,0.02) 0px, rgba(255,255,255,0.02) 1px, transparent 1px, transparent 3px);
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    position: relative;
+  }
+  .camara-lpr .scan-line {
+    position: absolute; left: 0; right: 0; height: 2px;
+    background: var(--verde);
+    box-shadow: 0 0 10px var(--verde);
+    animation: scan 2s linear infinite;
+    top: 0;
+  }
+  @keyframes scan {
+    0% { top: 10%; opacity: 0.8; }
+    50% { top: 90%; opacity: 0.8; }
+    100% { top: 10%; opacity: 0.8; }
+  }
+  .camara-lpr .camara-content {
+    text-align: center; z-index: 2;
+  }
+  .camara-lpr .camara-label {
+    font-size: 10px; color: var(--text-dim);
+    text-transform: uppercase; letter-spacing: 1px; margin-bottom: 6px;
+  }
+  .camara-lpr .placa-detectada {
+    font-size: 28px; font-weight: 900; font-family: 'Courier New', monospace;
+    letter-spacing: 3px;
+    background: #fff; color: #000;
+    padding: 6px 16px; border-radius: 4px;
+    display: inline-block;
+    border: 3px solid #000;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+  }
+  .camara-lpr .estado-deteccion {
+    margin-top: 10px;
+    font-size: 13px; font-weight: 700;
+    padding: 4px 12px; border-radius: 6px;
+    display: inline-block;
+  }
+  .camara-lpr .estado-deteccion.autorizado { background: rgba(16,185,129,0.2); color: var(--verde); }
+  .camara-lpr .estado-deteccion.denegado { background: rgba(239,68,68,0.2); color: var(--rojo); }
+  .camara-lpr .estado-deteccion.salida { background: rgba(59,130,246,0.2); color: var(--azul); }
+  .camara-lpr .estado-deteccion.esperando { color: var(--text-dim); }
+  .camara-lpr .camara-footer {
+    background: var(--bg-2);
+    padding: 8px 12px;
+    font-size: 11px;
+    color: var(--text-dim);
+    display: flex; justify-content: space-between; align-items: center;
+  }
+  .camara-lpr .camara-footer .rec {
+    display: flex; align-items: center; gap: 5px;
+    color: var(--rojo); font-weight: 600;
+  }
+  .camara-lpr .camara-footer .rec .rec-dot {
+    width: 8px; height: 8px; border-radius: 50%;
+    background: var(--rojo);
+    animation: pulse 1s infinite;
+  }
+  .camara-lpr .vehiculo-info {
+    margin-top: 8px;
+    font-size: 12px;
+    color: var(--text);
+  }
+  .camara-lpr .vehiculo-info p { margin: 2px 0; }
+
+  /* ====== LOG DE EVENTOS ====== */
+  .log {
+    max-height: 320px;
+    overflow-y: auto;
+    font-size: 11px;
+  }
+  .log-item {
+    padding: 8px 10px;
+    background: var(--bg);
+    border-radius: 6px;
+    margin-bottom: 5px;
+    border-left: 3px solid var(--azul);
+    animation: slideIn 0.3s;
+  }
+  .log-item.entrada { border-left-color: var(--verde); }
+  .log-item.salida { border-left-color: var(--rojo); }
+  .log-item.denegado { border-left-color: var(--naranja); background: rgba(249,115,22,0.08); }
+  .log-item.sistema { border-left-color: var(--azul); }
+  .log-item.camara { border-left-color: var(--amarillo); }
+  .log-item .hora { color: var(--text-dim); font-size: 9px; display: block; margin-bottom: 2px; }
+  .log-item .mensaje { line-height: 1.4; }
+  .log-item.denegado .mensaje { color: var(--naranja); }
+  @keyframes slideIn { from { opacity: 0; transform: translateX(-10px); } to { opacity: 1; transform: translateX(0); } }
+
+  /* ====== PLACAS AUTORIZADAS ====== */
+  .lista-placas {
+    max-height: 200px;
+    overflow-y: auto;
+  }
+  .placa-item {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 6px 8px; margin-bottom: 4px;
+    background: var(--bg); border-radius: 5px;
+    font-size: 11px;
+  }
+  .placa-item .placa-tag {
+    font-family: 'Courier New', monospace;
+    font-weight: 700; font-size: 12px;
+    background: var(--bg-3); padding: 2px 8px; border-radius: 3px;
+  }
+  .placa-item .propietario { color: var(--text-dim); font-size: 10px; }
+  .placa-item .tipo-badge {
+    font-size: 9px; padding: 1px 6px; border-radius: 3px; font-weight: 600;
+  }
+  .placa-item .tipo-badge.Estudiante { background: rgba(59,130,246,0.2); color: var(--azul); }
+  .placa-item .tipo-badge.Docente { background: rgba(245,158,11,0.2); color: var(--amarillo); }
+  .placa-item .tipo-badge.Administrativo { background: rgba(168,85,247,0.2); color: #a855f7; }
+
+  /* ====== TOAST ====== */
+  .toast {
+    position: fixed; bottom: 20px; right: 20px;
+    background: var(--bg-2);
+    border: 1px solid var(--verde);
+    border-radius: 12px;
+    padding: 14px 18px;
+    max-width: 360px;
+    box-shadow: 0 12px 40px rgba(0,0,0,0.5);
+    transform: translateY(200%);
+    transition: transform 0.4s;
+    z-index: 100;
+  }
+  .toast.show { transform: translateY(0); }
+  .toast.denegado { border-color: var(--rojo); }
+  .toast .toast-header {
+    display: flex; align-items: center; gap: 8px;
+    font-weight: 700; margin-bottom: 4px; font-size: 13px;
+  }
+  .toast .toast-header.autorizado { color: var(--verde); }
+  .toast .toast-header.denegado { color: var(--rojo); }
+  .toast .toast-body { font-size: 12px; line-height: 1.5; }
+
+  /* ====== SCROLLBAR ====== */
+  ::-webkit-scrollbar { width: 5px; }
+  ::-webkit-scrollbar-track { background: var(--bg); }
+  ::-webkit-scrollbar-thumb { background: var(--borde); border-radius: 3px; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="titulo">
+    <div class="logo">P</div>
+    <div>
+      <h1>Parqueo Inteligente UPB</h1>
+      <p>Parqueo Sur · Sistema LPR con Camaras · Control de Acceso</p>
+    </div>
+  </div>
+  <div class="estado-sistema">
+    <div class="dot" id="dot-sistema"></div>
+    <span id="estado-texto">Sistema detenido</span>
+  </div>
+</header>
+
+<!-- Contadores -->
+<section class="contadores">
+  <div class="card-contador disponible">
+    <div class="icono">V</div>
+    <div class="info">
+      <h3>Disponibles</h3>
+      <div class="numero" id="cnt-disponibles">32</div>
+    </div>
+  </div>
+  <div class="card-contador ocupado">
+    <div class="icono">A</div>
+    <div class="info">
+      <h3>Ocupados</h3>
+      <div class="numero" id="cnt-ocupados">0</div>
+    </div>
+  </div>
+  <div class="card-contador total">
+    <div class="icono">T</div>
+    <div class="info">
+      <h3>Capacidad Total</h3>
+      <div class="numero">32</div>
+    </div>
+  </div>
+</section>
+
+<!-- Control de simulacion -->
+<div class="control-simulacion">
+  <div class="info-sim">
+    <div class="icono-sim" id="icono-sim">O</div>
+    <div class="texto">
+      <h3>Simulacion Automatica LPR</h3>
+      <p id="sim-status">Detenida - Presiona iniciar para comenzar</p>
+    </div>
+  </div>
+  <div class="botones-sim">
+    <button class="btn-sim iniciar" id="btn-iniciar">INICIAR SIMULACION</button>
+    <button class="btn-sim detener" id="btn-detener" disabled>DETENER</button>
+    <button class="btn-sim reset" id="btn-reset">REINICIAR</button>
+  </div>
+</div>
+
+<!-- Layout principal -->
+<div class="main-grid">
+
+  <!-- Mapa del parqueo -->
+  <div class="mapa-parqueo">
+    <div class="mapa-header">
+      <h2>Mapa de Ocupacion</h2>
+      <div class="leyenda">
+        <span><div class="box libre"></div>Libre</span>
+        <span><div class="box ocupado"></div>Ocupado</span>
+        <span><div class="box nuevo"></div>Nuevo ingreso</span>
+      </div>
+    </div>
+
+    <div class="parqueo-container">
+      <div class="zonas-parqueo" id="zonas-parqueo"></div>
+      <div class="pasillo">
+        <div class="acceso entrada">v ENTRADA</div>
+        <div class="etiqueta-av">AV. JUAN PABLO II</div>
+        <div class="acceso salida">^ SALIDA</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Panel lateral -->
+  <aside class="panel-lateral">
+
+    <!-- Camara LPR -->
+    <div class="panel-card">
+      <h3>Camara LPR - Acceso Principal</h3>
+      <div class="camara-lpr">
+        <div class="camara-bg">
+          <div class="scan-line" id="scan-line" style="display:none;"></div>
+          <div class="camara-content" id="camara-content">
+            <div class="camara-label">Esperando vehiculo...</div>
+            <div class="placa-detectada" id="placa-detectada" style="opacity:0.3;">--- ---</div>
+            <div class="estado-deteccion esperando" id="estado-deteccion">CAMARA INACTIVA</div>
+          </div>
+          <div class="vehiculo-info" id="vehiculo-info" style="display:none;"></div>
+        </div>
+        <div class="camara-footer">
+          <span id="camara-ultima-det">Sin detecciones</span>
+          <div class="rec" id="rec-indicator" style="display:none;">
+            <div class="rec-dot"></div> REC
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Log de eventos -->
+    <div class="panel-card">
+      <h3>Registro de Eventos</h3>
+      <div class="log" id="log">
+        <div class="log-item sistema">
+          <span class="hora">Sistema</span>
+          <span class="mensaje">Esperando inicio de simulacion...</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Placas autorizadas -->
+    <div class="panel-card">
+      <h3>Placas Autorizadas (<span id="cnt-placas">0</span>)</h3>
+      <div class="lista-placas" id="lista-placas"></div>
+    </div>
+
+  </aside>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast">
+  <div class="toast-header autorizado" id="toast-header">Notificacion</div>
+  <div class="toast-body" id="toast-body"></div>
+</div>
+
+<script>
+  const API_BASE = '';
+  let ultimoEspacioAsignado = null;
+  let ultimoEventCount = 0;
+  let placasAutorizadas = [];
+
+  // ============ RENDER MAPA ============
+  function renderMapa(data) {
+    const zonas = data.parqueo.zonas;
+    const contenedor = document.getElementById('zonas-parqueo');
+    contenedor.innerHTML = '';
+
+    let totalDisponibles = data.disponibles !== undefined ? data.disponibles : 0;
+    let totalOcupados = data.ocupados !== undefined ? data.ocupados : 0;
+
+    // Recalcular por si acaso
+    totalDisponibles = 0;
+    totalOcupados = 0;
+
+    ['H', 'G', 'F', 'E'].forEach(zonaId => {
+      const zona = zonas[zonaId];
+      const libresZona = zona.filter(e => e.estado === 'libre').length;
+      const ocupadosZona = zona.length - libresZona;
+      totalDisponibles += libresZona;
+      totalOcupados += ocupadosZona;
+
+      const zonaDiv = document.createElement('div');
+      zonaDiv.className = 'zona';
+      zonaDiv.innerHTML = `
+        <div class="zona-header">
+          <span class="nombre">ZONA ${zonaId}</span>
+          <span class="contador-zona">${libresZona} libres / ${ocupadosZona} ocupados</span>
+        </div>
+        <div class="espacios">
+          ${zona.map(e => `
+            <div class="espacio ${e.estado === 'ocupado' ? 'ocupado' : ''}"
+                 data-id="${e.id}"
+                 title="${e.placa ? 'Placa: ' + e.placa + (e.propietario ? ' - ' + e.propietario : '') : 'Espacio libre'}">
+              ${e.estado === 'ocupado' ? '<span class="auto-icon">A</span>' : ''}
+              <span class="id-espacio">${e.id}</span>
+            </div>
+          `).join('')}
+        </div>
+      `;
+      contenedor.appendChild(zonaDiv);
+    });
+
+    document.getElementById('cnt-disponibles').textContent = totalDisponibles;
+    document.getElementById('cnt-ocupados').textContent = totalOcupados;
+
+    // Highlight ultimo asignado
+    if (ultimoEspacioAsignado) {
+      const el = document.querySelector(`.espacio[data-id="${ultimoEspacioAsignado}"]`);
+      if (el) {
+        el.classList.add('highlight');
+        setTimeout(() => el.classList.remove('highlight'), 3200);
+      }
+    }
+  }
+
+  // ============ RENDER CAMARA ============
+  function renderCamara(data) {
+    const camara = data;
+    const placaEl = document.getElementById('placa-detectada');
+    const estadoEl = document.getElementById('estado-deteccion');
+    const vehiculoInfo = document.getElementById('vehiculo-info');
+    const ultimaDet = document.getElementById('camara-ultima-det');
+    const scanLine = document.getElementById('scan-line');
+    const recIndicator = document.getElementById('rec-indicator');
+
+    if (camara.activa) {
+      scanLine.style.display = 'block';
+      recIndicator.style.display = 'flex';
+    } else {
+      scanLine.style.display = 'none';
+      recIndicator.style.display = 'none';
+    }
+
+    if (camara.ultima_placa_detectada) {
+      placaEl.textContent = camara.ultima_placa_detectada;
+      placaEl.style.opacity = '1';
+      ultimaDet.textContent = 'Ultima: ' + camara.ultima_deteccion;
+    } else {
+      placaEl.textContent = '--- ---';
+      placaEl.style.opacity = '0.3';
+      ultimaDet.textContent = camara.activa ? 'Esperando vehiculo...' : 'Sin detecciones';
+    }
+
+    estadoEl.className = 'estado-deteccion';
+    vehiculoInfo.style.display = 'none';
+
+    if (camara.ultimo_estado === 'autorizado') {
+      estadoEl.className = 'estado-deteccion autorizado';
+      estadoEl.textContent = 'ACCESO AUTORIZADO';
+      if (camara.detalle_vehiculo) {
+        vehiculoInfo.style.display = 'block';
+        vehiculoInfo.innerHTML = `
+          <p><strong>${camara.detalle_vehiculo.propietario}</strong></p>
+          <p>${camara.detalle_vehiculo.tipo}</p>
+        `;
+      }
+    } else if (camara.ultimo_estado === 'denegado') {
+      estadoEl.className = 'estado-deteccion denegado';
+      estadoEl.textContent = 'ACCESO DENEGADO';
+      if (camara.motivo_rechazo) {
+        vehiculoInfo.style.display = 'block';
+        vehiculoInfo.innerHTML = `<p style="color:var(--rojo);">${camara.motivo_rechazo}</p>`;
+      }
+    } else if (camara.ultimo_estado === 'salida') {
+      estadoEl.className = 'estado-deteccion salida';
+      estadoEl.textContent = 'SALIDA REGISTRADA';
+      if (camara.detalle_vehiculo && camara.detalle_vehiculo.propietario) {
+        vehiculoInfo.style.display = 'block';
+        vehiculoInfo.innerHTML = `<p>${camara.detalle_vehiculo.propietario}</p>`;
+      }
+    } else {
+      estadoEl.className = 'estado-deteccion esperando';
+      estadoEl.textContent = camara.activa ? 'ESPERANDO VEHICULO' : 'CAMARA INACTIVA';
+    }
+  }
+
+  // ============ RENDER EVENTOS ============
+  function renderEventos(data) {
+    const log = document.getElementById('log');
+    const eventos = data.eventos;
+
+    if (!eventos || eventos.length === 0) return;
+
+    // Solo actualizar si hay eventos nuevos
+    if (eventos.length === ultimoEventCount) return;
+    ultimoEventCount = eventos.length;
+
+    log.innerHTML = '';
+    eventos.forEach(ev => {
+      const item = document.createElement('div');
+      item.className = 'log-item ' + ev.tipo;
+      item.innerHTML = `
+        <span class="hora">${ev.hora}</span>
+        <span class="mensaje">${ev.mensaje}</span>
+      `;
+      log.appendChild(item);
+    });
+
+    // Procesar ultimo evento para highlight y toast
+    const ultimo = eventos[0];
+    if (ultimo && ultimo.detalle) {
+      if (ultimo.tipo === 'entrada' && ultimo.detalle.espacio) {
+        ultimoEspacioAsignado = ultimo.detalle.espacio;
+        mostrarToast(ultimo.mensaje, 'autorizado');
+      } else if (ultimo.tipo === 'denegado') {
+        mostrarToast(ultimo.mensaje, 'denegado');
+      } else if (ultimo.tipo === 'salida' && ultimo.detalle.espacio) {
+        mostrarToast(ultimo.mensaje, 'info');
+      }
+    }
+  }
+
+  // ============ RENDER PLACAS AUTORIZADAS ============
+  function renderPlacasAutorizadas(data) {
+    placasAutorizadas = data.placas;
+    document.getElementById('cnt-placas').textContent = data.total;
+    const cont = document.getElementById('lista-placas');
+    cont.innerHTML = '';
+    data.placas.forEach(v => {
+      const div = document.createElement('div');
+      div.className = 'placa-item';
+      div.innerHTML = `
+        <span class="placa-tag">${v.placa}</span>
+        <span class="propietario">${v.propietario}</span>
+        <span class="tipo-badge ${v.tipo}">${v.tipo}</span>
+      `;
+      cont.appendChild(div);
+    });
+  }
+
+  // ============ TOAST ============
+  function mostrarToast(mensaje, tipo = 'info') {
+    const toast = document.getElementById('toast');
+    const header = document.getElementById('toast-header');
+    const body = document.getElementById('toast-body');
+
+    body.textContent = mensaje;
+    header.className = 'toast-header ' + tipo;
+
+    if (tipo === 'autorizado') {
+      header.textContent = 'ACCESO AUTORIZADO';
+      toast.classList.remove('denegado');
+    } else if (tipo === 'denegado') {
+      header.textContent = 'ACCESO DENEGADO';
+      toast.classList.add('denegado');
+    } else {
+      header.textContent = 'Evento';
+      toast.classList.remove('denegado');
+    }
+
+    toast.classList.add('show');
+    clearTimeout(toast._timeout);
+    toast._timeout = setTimeout(() => toast.classList.remove('show'), 5000);
+  }
+
+  // ============ ACTUALIZAR ESTADO (POLLING) ============
+  async function actualizarEstado() {
+    try {
+      const [resParqueo, resCamara, resEventos, resPlacas] = await Promise.all([
+        fetch(API_BASE + '/api/parqueo'),
+        fetch(API_BASE + '/api/camara'),
+        fetch(API_BASE + '/api/eventos'),
+        fetch(API_BASE + '/api/placas-autorizadas')
+      ]);
+
+      const dataParqueo = await resParqueo.json();
+      const dataCamara = await resCamara.json();
+      const dataEventos = await resEventos.json();
+      const dataPlacas = await resPlacas.json();
+
+      renderMapa(dataParqueo);
+      renderCamara(dataCamara);
+      renderEventos(dataEventos);
+      renderPlacasAutorizadas(dataPlacas);
+
+      // Actualizar indicador de simulacion
+      const simActiva = dataParqueo.simulacion_activa;
+      const dot = document.getElementById('dot-sistema');
+      const estadoTexto = document.getElementById('estado-texto');
+      const simStatus = document.getElementById('sim-status');
+      const btnIniciar = document.getElementById('btn-iniciar');
+      const btnDetener = document.getElementById('btn-detener');
+      const iconoSim = document.getElementById('icono-sim');
+
+      if (simActiva) {
+        dot.classList.add('activo');
+        estadoTexto.textContent = 'Simulacion activa · LPR escaneando';
+        simStatus.textContent = 'En ejecucion - Vehiculos entrando y saliendo';
+        btnIniciar.disabled = true;
+        btnDetener.disabled = false;
+        iconoSim.textContent = 'R';
+        iconoSim.style.background = 'rgba(16,185,129,0.2)';
+        iconoSim.style.color = 'var(--verde)';
+      } else {
+        dot.classList.remove('activo');
+        estadoTexto.textContent = 'Sistema detenido';
+        simStatus.textContent = 'Detenida - Presiona iniciar para comenzar';
+        btnIniciar.disabled = false;
+        btnDetener.disabled = true;
+        iconoSim.textContent = 'O';
+        iconoSim.style.background = 'var(--bg-3)';
+        iconoSim.style.color = 'var(--text-dim)';
+      }
+    } catch (err) {
+      console.error('Error al actualizar:', err);
+    }
+  }
+
+  // ============ BOTONES ============
+  document.getElementById('btn-iniciar').addEventListener('click', async () => {
+    try {
+      const res = await fetch(API_BASE + '/api/simulacion/iniciar', { method: 'POST' });
+      const data = await res.json();
+      if (!data.exito) {
+        mostrarToast(data.mensaje, 'info');
+      }
+    } catch (err) {
+      mostrarToast('Error de conexion con el servidor', 'denegado');
+    }
+  });
+
+  document.getElementById('btn-detener').addEventListener('click', async () => {
+    try {
+      const res = await fetch(API_BASE + '/api/simulacion/detener', { method: 'POST' });
+      const data = await res.json();
+    } catch (err) {
+      mostrarToast('Error de conexion', 'denegado');
+    }
+  });
+
+  document.getElementById('btn-reset').addEventListener('click', async () => {
+    try {
+      const res = await fetch(API_BASE + '/api/simulacion/reset', { method: 'POST' });
+      const data = await res.json();
+      ultimoEventCount = 0;
+      mostrarToast('Sistema reiniciado - Todos los espacios libres', 'info');
+    } catch (err) {
+      mostrarToast('Error al reiniciar', 'denegado');
+    }
+  });
+
+  // ============ INICIO ============
+  actualizarEstado();
+  setInterval(actualizarEstado, 1500);
+</script>
+
+</body>
+</html>

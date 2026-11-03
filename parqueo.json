@@ -1,0 +1,273 @@
+{
+    "parqueo": {
+        "zonas": {
+            "H": [
+                {
+                    "id": "H-1",
+                    "estado": "libre",
+                    "placa": null,
+                    "hora_ingreso": null,
+                    "propietario": null,
+                    "tipo": null
+                },
+                {
+                    "id": "H-2",
+                    "estado": "ocupado",
+                    "placa": "ZAB-888",
+                    "hora_ingreso": "08:31:57",
+                    "propietario": "Viviana Choque",
+                    "tipo": "Administrativo"
+                },
+                {
+                    "id": "H-3",
+                    "estado": "libre",
+                    "placa": null,
+                    "hora_ingreso": null,
+                    "propietario": null,
+                    "tipo": null
+                },
+                {
+                    "id": "H-4",
+                    "estado": "ocupado",
+                    "placa": "ABC-123",
+                    "hora_ingreso": "08:38:57",
+                    "propietario": "Juan Perez",
+                    "tipo": "Estudiante"
+                },
+                {
+                    "id": "H-5",
+                    "estado": "libre",
+                    "placa": null,
+                    "hora_ingreso": null,
+                    "propietario": null,
+                    "tipo": null
+                },
+                {
+                    "id": "H-6",
+                    "estado": "libre",
+                    "placa": null,
+                    "hora_ingreso": null,
+                    "propietario": null,
+                    "tipo": null
+                },
+                {
+                    "id": "H-7",
+                    "estado": "libre",
+                    "placa": null,
+                    "hora_ingreso": null,
+                    "propietario": null,
+                    "tipo": null
+                },
+                {
+                    "id": "H-8",
+                    "estado": "libre",
+                    "placa": null,
+                    "hora_ingreso": null,
+                    "propietario": null,
+                    "tipo": null
+                }
+            ],
+            "G": [
+                {
+                    "id": "G-1",
+                    "estado": "libre",
+                    "placa": null,
+                    "hora_ingreso": null,
+                    "propietario": null,
+                    "tipo": null
+                },
+                {
+                    "id": "G-2",
+                    "estado": "libre",
+                    "placa": null,
+                    "hora_ingreso": null,
+                    "propietario": null,
+                    "tipo": null
+                },
+                {
+                    "id": "G-3",
+                    "estado": "libre",
+                    "placa": null,
+                    "hora_ingreso": null,
+                    "propietario": null,
+                    "tipo": null
+                },
+                {
+                    "id": "G-4",
+                    "estado": "libre",
+                    "placa": null,
+                    "hora_ingreso": null,
+                    "propietario": null,
+                    "tipo": null
+                },
+                {
+                    "id": "G-5",
+                    "estado": "libre",
+                    "placa": null,
+                    "hora_ingreso": null,
+                    "propietario": null,
+                    "tipo": null
+                },
+                {
+                    "id": "G-6",
+                    "estado": "libre",
+                    "placa": null,
+                    "hora_ingreso": null,
+                    "propietario": null,
+                    "tipo": null
+                },
+                {
+                    "id": "G-7",
+                    "estado": "libre",
+                    "placa": null,
+                    "hora_ingreso": null,
+                    "propietario": null,
+                    "tipo": null
+                },
+                {
+                    "id": "G-8",
+                    "estado": "ocupado",
+                    "placa": "EFG-111",
+                    "hora_ingreso": "08:31:31",
+                    "propietario": "Ramon Sosa",
+                    "tipo": "Estudiante"
+                }
+            ],
+            "F": [
+                {
+                    "id": "F-1",
+                    "estado": "libre",
+                    "placa": null,
+                    "hora_ingreso": null,
+                    "propietario": null,
+                    "tipo": null
+                },
+                {
+                    "id": "F-2",
+                    "estado": "libre",
+                    "placa": null,
+                    "hora_ingreso": null,
+                    "propietario": null,
+                    "tipo": null
+                },
+                {
+                    "id": "F-3",
+                    "estado": "libre",
+                    "placa": null,
+                    "hora_ingreso": null,
+                    "propietario": null,
+                    "tipo": null
+                },
+                {
+                    "id": "F-4",
+                    "estado": "ocupado",
+                    "placa": "KLM-333",
+                    "hora_ingreso": "08:38:40",
+                    "propietario": "Fernando Apaza",
+                    "tipo": "Docente"
+                },
+                {
+                    "id": "F-5",
+                    "estado": "libre",
+                    "placa": null,
+                    "hora_ingreso": null,
+                    "propietario": null,
+                    "tipo": null
+                },
+                {
+                    "id": "F-6",
+                    "estado": "ocupado",
+                    "placa": "VWX-234",
+                    "hora_ingreso": "08:31:43",
+                    "propietario": "Elena Vargas",
+                    "tipo": "Estudiante"
+                },
+                {
+                    "id": "F-7",
+                    "estado": "libre",
+                    "placa": null,
+                    "hora_ingreso": null,
+                    "propietario": null,
+                    "tipo": null
+                },
+                {
+                    "id": "F-8",
+                    "estado": "ocupado",
+                    "placa": "FGH-000",
+                    "hora_ingreso": "08:31:34",
+                    "propietario": "Adriana Mejia",
+                    "tipo": "Docente"
+                }
+            ],
+            "E": [
+                {
+                    "id": "E-1",
+                    "estado": "ocupado",
+                    "placa": "DEF-456",
+                    "hora_ingreso": "08:38:28",
+                    "propietario": "Maria Lopez",
+                    "tipo": "Estudiante"
+                },
+                {
+                    "id": "E-2",
+                    "estado": "libre",
+                    "placa": null,
+                    "hora_ingreso": null,
+                    "propietario": null,
+                    "tipo": null
+                },
+                {
+                    "id": "E-3",
+                    "estado": "libre",
+                    "placa": null,
+                    "hora_ingreso": null,
+                    "propietario": null,
+                    "tipo": null
+                },
+                {
+                    "id": "E-4",
+                    "estado": "libre",
+                    "placa": null,
+                    "hora_ingreso": null,
+                    "propietario": null,
+                    "tipo": null
+                },
+                {
+                    "id": "E-5",
+                    "estado": "libre",
+                    "placa": null,
+                    "hora_ingreso": null,
+                    "propietario": null,
+                    "tipo": null
+                },
+                {
+                    "id": "E-6",
+                    "estado": "libre",
+                    "placa": null,
+                    "hora_ingreso": null,
+                    "propietario": null,
+                    "tipo": null
+                },
+                {
+                    "id": "E-7",
+                    "estado": "libre",
+                    "placa": null,
+                    "hora_ingreso": null,
+                    "propietario": null,
+                    "tipo": null
+                },
+                {
+                    "id": "E-8",
+                    "estado": "libre",
+                    "placa": null,
+                    "hora_ingreso": null,
+                    "propietario": null,
+                    "tipo": null
+                }
+            ]
+        }
+    },
+    "simulacion": {
+        "activa": false
+    }
+}
